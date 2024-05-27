@@ -16,6 +16,8 @@ public class PlayerController : MonoBehaviour
     public float groundCheckRadius = 0.2f; // Radio para comprobar el suelo
     public LayerMask groundLayer; // Capa del suelo
     private bool isJumping; // Para controlar si el personaje está saltando
+    private bool canDoubleJump; // Para controlar si el personaje puede hacer un doble salto
+    public bool PlayerCanDoDobleJump;
 
     void Start()
     {
@@ -42,14 +44,30 @@ public class PlayerController : MonoBehaviour
             animator.SetBool("isRunning", false);
         }
 
-        // Lógica de animación de salto
-        if (Input.GetButtonDown("Jump") && isGrounded)
+        // Lógica de salto
+        if (Input.GetButtonDown("Jump"))
         {
-            isJumping = true;
-            jumpTimeCounter = maxJumpTime;
-            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-            animator.SetBool("isJumping", true);
-            animator.SetBool("isFalling", false);
+            if (isGrounded)
+            {
+                isJumping = true;
+                jumpTimeCounter = maxJumpTime;
+                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+                animator.SetBool("isJumping", true);
+                animator.SetBool("isFalling", false);
+                if (PlayerCanDoDobleJump)
+                {
+                    canDoubleJump = true; // Permitir el doble salto después del primer salto}
+
+                }
+            }
+            else if (canDoubleJump)
+            {
+                isJumping = true;
+                jumpTimeCounter = maxJumpTime;
+                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+                animator.SetBool("isDoubleJumping", true);
+                canDoubleJump = false; // Consumir el doble salto
+            }
         }
 
         if (Input.GetButton("Jump") && isJumping)
@@ -83,6 +101,7 @@ public class PlayerController : MonoBehaviour
         {
             animator.SetBool("isJumping", false);
             animator.SetBool("isFalling", false);
+            animator.SetBool("isDoubleJumping", false); // Resetear cuando aterriza
         }
 
         // Girar el personaje según la dirección de movimiento

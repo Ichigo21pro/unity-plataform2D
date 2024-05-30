@@ -17,24 +17,18 @@ public class PlayerController : MonoBehaviour
     public LayerMask groundLayer; // Capa del suelo
     private bool isJumping; // Para controlar si el personaje está saltando
     private bool canDoubleJump; // Para controlar si el personaje puede hacer un doble salto
+   
+
     public bool PlayerCanDoDobleJump; // Para controlar desde fuera si puede hacer doble salto
-    public bool PlayerCanFightPunch; // Para controlar desde fuera si puede hacer doble salto
-    public bool PlayerCanFightKikcs; // Para controlar desde fuera si puede hacer doble salto
 
-    private int punchComboStep; // Paso actual en el combo de puñetazos
-    private float punchComboResetTime = 1f; // Tiempo para reiniciar el combo de puñetazos
-    private float lastPunchTime; // Última vez que se presionó la tecla de puñetazo
-
-    private int kickComboStep; // Paso actual en el combo de patadas
-    private float kickComboResetTime = 0.5f; // Tiempo para reiniciar el combo de patadas
-    private float lastKickTime; // Última vez que se presionó la tecla de patada
-
+  
     void Start()
-    {
+    {      
+  
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
-        punchComboStep = 0; // Inicialmente el combo de puñetazos está en el primer paso
-        kickComboStep = 0; // Inicialmente el combo de patadas está en el primer paso
+        
+       
     }
 
     void Update()
@@ -115,62 +109,7 @@ public class PlayerController : MonoBehaviour
             animator.SetBool("isDoubleJumping", false); // Resetear cuando aterriza
         }
 
-        // Lógica de combo de puñetazos
-        if (PlayerCanFightPunch) { 
-        if (Input.GetKeyDown(KeyCode.J))
-        {
-            float timeSinceLastPunch = Time.time - lastPunchTime;
-
-            if (timeSinceLastPunch > punchComboResetTime)
-            {
-                punchComboStep = 0; // Reiniciar el combo si el tiempo entre ataques es demasiado largo
-            }
-
-            if (punchComboStep == 0)
-            {
-                animator.SetTrigger("Punch1");
-            }
-            else if (punchComboStep == 1)
-            {
-                animator.SetTrigger("Punch2");
-            }
-            else if (punchComboStep == 2)
-            {
-                animator.SetTrigger("Punch3");
-            }
-            else if (punchComboStep == 3)
-            {
-                animator.SetTrigger("Punch4");
-            }
-
-            punchComboStep = (punchComboStep + 1) % 4; // Avanzar al siguiente paso del combo y volver a 0 después del último paso
-            lastPunchTime = Time.time; // Actualizar el tiempo del último ataque
-        }
-        }
-        if(PlayerCanFightKikcs) { 
-        // Lógica de combo de patadas
-        if (Input.GetKeyDown(KeyCode.K))
-        {
-            float timeSinceLastKick = Time.time - lastKickTime;
-
-            if (timeSinceLastKick > kickComboResetTime)
-            {
-                kickComboStep = 0; // Reiniciar el combo si el tiempo entre ataques es demasiado largo
-            }
-
-            if (kickComboStep == 0)
-            {
-                animator.SetTrigger("Kick1");
-            }
-            else if (kickComboStep == 1)
-            {
-                animator.SetTrigger("Kick2");
-            }
-
-            kickComboStep = (kickComboStep + 1) % 2; // Avanzar al siguiente paso del combo y volver a 0 después del último paso
-            lastKickTime = Time.time; // Actualizar el tiempo del último ataque
-        }
-        }
+       
         // Girar el personaje según la dirección de movimiento
         if (movement.x < 0)
         {
@@ -180,25 +119,11 @@ public class PlayerController : MonoBehaviour
         {
             transform.localScale = new Vector3(1, 1, 1);
         }
-        if (PlayerCanFightKikcs || PlayerCanFightPunch) { 
-        // Reiniciar animaciones de ataque cuando terminan
-        if (animator.GetCurrentAnimatorStateInfo(0).IsTag("Attack"))
-        {
-            if (animator.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f)
-            {
-                if (movement.x == 0)
-                {
-                    animator.SetBool("isRunning", false);
-                }
-                else
-                {
-                    animator.SetBool("isRunning", true);
-                }
-            }
-        }
-        }
+       
+
     }
 
+ 
     void FixedUpdate()
     {
         // Aplicar el movimiento al personaje

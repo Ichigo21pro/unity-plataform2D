@@ -24,11 +24,14 @@ public class FightPlayer : MonoBehaviour
     public float comboWindow = 0.5f; // Ventana de tiempo para realizar el siguiente ataque en el combo
     public float timeBetweenAttacks = 0.3f; // Tiempo entre ataques
     public float comboCooldown = 1.0f; // Tiempo de espera después de un combo completo
+    public bool canPunchAttack = false;
+    public bool canKickAttack = false;
 
     bool canAttack = true; // Indica si el jugador puede atacar
 
     void Update()
     {
+        if (canPunchAttack) { 
         if (canAttack && Input.GetKeyDown(KeyCode.J) && playerController.IsGrounded())
         {
             if (Time.time - lastPunchAttackTime >= timeBetweenAttacks)
@@ -36,12 +39,15 @@ public class FightPlayer : MonoBehaviour
                 AttackPunch();
             }
         }
-
-        if (canAttack && Input.GetKeyDown(KeyCode.K) && playerController.IsGrounded())
+        }
+        if (canKickAttack)
         {
-            if (Time.time - lastKickAttackTime >= timeBetweenAttacks)
+            if (canAttack && Input.GetKeyDown(KeyCode.K) && playerController.IsGrounded())
             {
-                AttackKick();
+                if (Time.time - lastKickAttackTime >= timeBetweenAttacks)
+                {
+                    AttackKick();
+                }
             }
         }
     }
@@ -192,4 +198,7 @@ public class FightPlayer : MonoBehaviour
             Gizmos.DrawWireSphere(KickPoint.position, attackKickRange);
         }
     }
+
+    public void PunchEneable() { canPunchAttack = true; }
+    public void KickEneable() { canKickAttack = true; }
 }

@@ -17,18 +17,14 @@ public class PlayerController : MonoBehaviour
     public LayerMask groundLayer; // Capa del suelo
     private bool isJumping; // Para controlar si el personaje está saltando
     private bool canDoubleJump; // Para controlar si el personaje puede hacer un doble salto
-   
 
     public bool PlayerCanDoDobleJump; // Para controlar desde fuera si puede hacer doble salto
+    private bool isCrouching; // Para controlar si el personaje está agachado
 
-  
     void Start()
-    {      
-  
+    {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
-        
-       
     }
 
     void Update()
@@ -41,7 +37,7 @@ public class PlayerController : MonoBehaviour
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
 
         // Lógica de animación de correr
-        if (movement.x != 0 && isGrounded)
+        if (movement.x != 0 && isGrounded && !isCrouching)
         {
             animator.SetBool("isRunning", true);
         }
@@ -50,7 +46,55 @@ public class PlayerController : MonoBehaviour
             animator.SetBool("isRunning", false);
         }
 
-        // Lógica de salto
+        HandleJumping();
+        HandleCrouching();
+
+        // Actualizar isFalling según la velocidad vertical
+        if (rb.velocity.y < 0)
+        {
+            animator.SetBool("isFalling", true);
+        }
+        else
+        {
+            animator.SetBool("isFalling", false);
+        }
+
+        if (isGrounded && rb.velocity.y == 0)
+        {
+            animator.SetBool("isJumping", false);
+            animator.SetBool("isFalling", false);
+            animator.SetBool("isDoubleJumping", false);
+        }
+
+        // Girar el personaje según la dirección de movimiento
+        if (!isCrouching) // Solo girar si no está agachado
+        {
+            if (movement.x < 0)
+            {
+                transform.localScale = new Vector3(-1, 1, 1);
+            }
+            else if (movement.x > 0)
+            {
+                transform.localScale = new Vector3(1, 1, 1);
+            }
+        }
+    }
+
+    void FixedUpdate()
+    {
+        // Aplicar el movimiento al personaje
+        if (!isCrouching)
+        {
+            rb.velocity = new Vector2(movement.x * speed, rb.velocity.y);
+        }
+        else
+        {
+            rb.velocity = new Vector2(0, rb.velocity.y); // Detener el movimiento horizontal cuando está agachado
+        }
+    }
+
+    void HandleJumping()
+    {
         if (Input.GetButtonDown("Jump"))
         {
             if (isGrounded)
@@ -62,7 +106,7 @@ public class PlayerController : MonoBehaviour
                 animator.SetBool("isFalling", false);
                 if (PlayerCanDoDobleJump)
                 {
-                    canDoubleJump = true; // Permitir el doble salto después del primer salto
+                    canDoubleJump = true;
                 }
             }
             else if (canDoubleJump)
@@ -71,7 +115,7 @@ public class PlayerController : MonoBehaviour
                 jumpTimeCounter = maxJumpTime;
                 rb.velocity = new Vector2(rb.velocity.x, jumpForce);
                 animator.SetBool("isDoubleJumping", true);
-                canDoubleJump = false; // Consumir el doble salto
+                canDoubleJump = false;
             }
         }
 
@@ -92,47 +136,24 @@ public class PlayerController : MonoBehaviour
         {
             isJumping = false;
         }
-
-        if (rb.velocity.y < 0)
-        {
-            animator.SetBool("isFalling", true);
-        }
-        else if (rb.velocity.y > 0)
-        {
-            animator.SetBool("isFalling", false);
-        }
-
-        if (isGrounded && rb.velocity.y == 0)
-        {
-            animator.SetBool("isJumping", false);
-            animator.SetBool("isFalling", false);
-            animator.SetBool("isDoubleJumping", false); // Resetear cuando aterriza
-        }
-
-       
-        // Girar el personaje según la dirección de movimiento
-        if (movement.x < 0)
-        {
-            transform.localScale = new Vector3(-1, 1, 1);
-        }
-        else if (movement.x > 0)
-        {
-            transform.localScale = new Vector3(1, 1, 1);
-        }
-       
-
     }
 
- 
-    void FixedUpdate()
+    void HandleCrouching()
     {
-        // Aplicar el movimiento al personaje
-        rb.velocity = new Vector2(movement.x * speed, rb.velocity.y);
+        if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            isCrouching = true;
+            animator.SetBool("isCrouching", true);
+        }
+        else if (Input.GetKeyUp(KeyCode.S) || Input.GetKeyUp(KeyCode.DownArrow))
+        {
+            isCrouching = false;
+            animator.SetBool("isCrouching", false);
+        }
     }
 
     private void OnDrawGizmos()
     {
-        // Dibujar el círculo de comprobación del suelo en el editor
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
     }
@@ -141,4 +162,6 @@ public class PlayerController : MonoBehaviour
     {
         return isGrounded;
     }
+
+    public void CanDoubleJump() { canDoubleJump = true; }
 }

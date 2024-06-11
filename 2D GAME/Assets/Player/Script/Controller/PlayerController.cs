@@ -8,8 +8,8 @@ public class PlayerController : MonoBehaviour
     public float jumpForce = 7f; // Fuerza del salto
     public float maxJumpTime = 0.5f; // Tiempo máximo de salto mantenido
     private float jumpTimeCounter; // Contador del tiempo de salto
-    private Rigidbody2D rb; // Referencia al componente Rigidbody2D del personaje
-    private Animator animator; // Referencia al componente Animator del personaje
+    public Rigidbody2D rb; // Referencia al componente Rigidbody2D del personaje
+    public Animator animator; // Referencia al componente Animator del personaje
     private Vector2 movement; // Vector para almacenar el movimiento del personaje
     private bool isGrounded; // Para comprobar si el personaje está en el suelo
     public Transform groundCheck; // Transform para comprobar si el personaje toca el suelo
@@ -17,14 +17,16 @@ public class PlayerController : MonoBehaviour
     public LayerMask groundLayer; // Capa del suelo
     private bool isJumping; // Para controlar si el personaje está saltando
     private bool canDoubleJump; // Para controlar si el personaje puede hacer un doble salto
-
     public bool PlayerCanDoDobleJump; // Para controlar desde fuera si puede hacer doble salto
     private bool isCrouching; // Para controlar si el personaje está agachado
+
+    private wallJump wallJump; // Referencia al script WallJump
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+        wallJump = GetComponent<wallJump>();
     }
 
     void Update()
@@ -67,7 +69,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // Girar el personaje según la dirección de movimiento
-        if (!isCrouching) // Solo girar si no está agachado
+        if (!isCrouching && !wallJump.isWallSliding) // Solo girar si no está agachado o deslizando en la pared
         {
             if (movement.x < 0)
             {
@@ -83,11 +85,11 @@ public class PlayerController : MonoBehaviour
     void FixedUpdate()
     {
         // Aplicar el movimiento al personaje
-        if (!isCrouching)
+        if (!isCrouching && !wallJump.isWallSliding)
         {
             rb.velocity = new Vector2(movement.x * speed, rb.velocity.y);
         }
-        else
+        else if (isCrouching)
         {
             rb.velocity = new Vector2(0, rb.velocity.y); // Detener el movimiento horizontal cuando está agachado
         }
